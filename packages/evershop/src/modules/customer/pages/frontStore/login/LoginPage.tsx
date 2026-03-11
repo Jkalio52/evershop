@@ -16,30 +16,32 @@ export default function LoginPage({
   forgotPasswordUrl
 }: LoginPageProps) {
   return (
-    <div className="login__page flex flex-col justify-center items-center">
-      <Card className="flex justify-center items-center max-w-max md:max-w-[80%]">
-        <CardContent>
-          <CustomerLoginForm
-            title={_('Welcome Back!')}
-            subtitle={_('Please sign in to your account')}
-            redirectUrl={homeUrl}
-            onError={(error) => {
-              toast.error(error.message);
-            }}
-            className="w-120"
-          />
-        </CardContent>
-      </Card>
-      <div className="login__page__options text-center mt-2 gap-5 flex justify-center">
-        <a className="text-interactive hover:underline" href={registerUrl}>
-          {_('Create an account')}
-        </a>
-        <a
-          className="text-destructive hover:underline"
-          href={forgotPasswordUrl}
-        >
-          {_('Forgot your password?')}
-        </a>
+    <div className="login__page flex flex-col items-center py-10 px-4">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardContent>
+            <CustomerLoginForm
+              title={_('Welcome Back!')}
+              subtitle={_('Please sign in to your account')}
+              redirectUrl={homeUrl}
+              onError={(error) => {
+                toast.error(error.message);
+              }}
+              className="w-full"
+            />
+          </CardContent>
+        </Card>
+        <div className="login__page__options text-center mt-4 gap-5 flex justify-center">
+          <a className="text-interactive hover:underline" href={registerUrl}>
+            {_('Create an account')}
+          </a>
+          <a
+            className="text-destructive hover:underline"
+            href={forgotPasswordUrl}
+          >
+            {_('Forgot your password?')}
+          </a>
+        </div>
       </div>
     </div>
   );
