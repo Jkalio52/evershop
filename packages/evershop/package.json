@@ -71,9 +71,9 @@
       "import": "./dist/components/admin/*.js",
       "types": "./dist/components/admin/*.d.ts"
     },
-    "./components/frontend/*": {
-      "import": "./dist/components/storeFront/*.js",
-      "types": "./dist/components/storeFront/*.d.ts"
+    "./components/frontStore/*": {
+      "import": "./dist/components/frontStore/*.js",
+      "types": "./dist/components/frontStore/*.d.ts"
     },
     "./graphql/services": {
       "import": "./dist/modules/graphql/services/index.js",
