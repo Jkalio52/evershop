@@ -1,5 +1,5 @@
-import { callSubscribers } from './callSubscibers.js';
 import { debug, error } from '../log/logger.js';
+import { callSubscribers } from './callSubscibers.js';
 import type { EventRow, EventStorage } from './EventStorage.js';
 
 const BATCH_SIZE = 10;

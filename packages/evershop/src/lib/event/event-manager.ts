@@ -6,8 +6,8 @@ import { pool, connectionSetting } from '../../lib/postgres/connection.js';
 import { debug, error } from '../log/logger.js';
 import { lockHooks } from '../util/hookable.js';
 import { lockRegistry } from '../util/registry.js';
-import { EventStorage } from './EventStorage.js';
 import { createEventProcessor } from './EventProcessor.js';
+import { EventStorage } from './EventStorage.js';
 import { loadSubscribers } from './loadSubscribers.js';
 
 const POLL_INTERVAL = 10000;
