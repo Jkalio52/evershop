@@ -2,11 +2,10 @@ import {
   select,
   getConnection,
   startTransaction,
-  insert,
   commit,
   rollback
 } from '@evershop/postgres-query-builder';
-import stripePayment from 'stripe';
+import Stripe from 'stripe';
 import smallestUnit from 'zero-decimal-currencies';
 import { error } from '../../../../lib/log/logger.js';
 import { pool } from '../../../../lib/postgres/connection.js';
@@ -61,20 +60,25 @@ export default async (request, response, next) => {
     const stripeConfig = getConfig('system.stripe', {});
     let stripeSecretKey;
 
-    if (stripeConfig.secretKey) {
+    if (stripeConfig?.secretKey) {
       stripeSecretKey = stripeConfig.secretKey;
     } else {
       stripeSecretKey = await getSetting('stripeSecretKey', '');
     }
-    const stripe = stripePayment(stripeSecretKey);
+    const stripe = new Stripe(stripeSecretKey);
     // Refund
     const refund = await stripe.refunds.create({
       payment_intent: paymentTransaction.transaction_id,
       amount: smallestUnit.default(amount, order.currency)
     });
-    const charge = await stripe.charges.retrieve(refund.charge);
+    const chargeId =
+      typeof refund.charge === 'string'
+        ? refund.charge
+        : refund.charge?.id ?? '';
+    const charge = await stripe.charges.retrieve(chargeId);
     // Update the order status
-    const status = charge.refunded === true ? 'refunded' : 'partial_refunded';
+    const status =
+      charge.refunded === true ? 'stripe_refunded' : 'stripe_partial_refunded';
     await updatePaymentStatus(order.order_id, status, connection);
 
     // Add order activity log

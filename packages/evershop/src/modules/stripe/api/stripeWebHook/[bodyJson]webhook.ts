@@ -37,7 +37,7 @@ export default async (
     } else {
       stripeSecretKey = await getSetting('stripeSecretKey', '');
     }
-    const stripe = new stripePgk(stripeSecretKey, {} as stripePgk.StripeConfig);
+    const stripe = new stripePgk(stripeSecretKey);
 
     // Webhook enpoint secret
     let endpointSecret;
@@ -53,7 +53,7 @@ export default async (
       endpointSecret
     );
     await startTransaction(connection);
-    const paymentIntent = event.data.object;
+    const paymentIntent = event.data.object as stripePgk.PaymentIntent;
     const { order_id } = paymentIntent.metadata;
     const transaction = await select()
       .from('payment_transaction')
@@ -90,12 +90,16 @@ export default async (
           .execute(connection);
 
         if (!transaction) {
-          await updatePaymentStatus(order.order_id, 'paid', connection);
+          await updatePaymentStatus(
+            order.order_id,
+            'stripe_captured',
+            connection
+          );
 
           // Add an activity log
           await addOrderActivityLog(
             order.order_id,
-            `Customer paid by using Stripe. Transaction ID: ${paymentIntent.id}`,
+            `Payment captured by using Stripe. Transaction ID: ${paymentIntent.id}`,
             false,
             connection
           );
@@ -127,11 +131,15 @@ export default async (
           .execute(connection);
 
         if (!transaction) {
-          await updatePaymentStatus(order.order_id, 'authorized', connection);
+          await updatePaymentStatus(
+            order.order_id,
+            'stripe_authorized',
+            connection
+          );
           // Add an activity log
           await addOrderActivityLog(
             order.order_id,
-            `Customer authorized by using Stripe. Transaction ID: ${paymentIntent.id}`,
+            `Payment authorized by using Stripe. Transaction ID: ${paymentIntent.id}`,
             false,
             connection
           );

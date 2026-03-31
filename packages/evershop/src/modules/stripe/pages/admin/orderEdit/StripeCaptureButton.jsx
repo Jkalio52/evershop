@@ -33,7 +33,7 @@ export default function StripeCaptureButton({
   return (
     <RenderIfTrue
       condition={
-        paymentStatus.code === 'authorized' && paymentMethod === 'stripe'
+        paymentStatus.code === 'stripe_authorized' && paymentMethod === 'stripe'
       }
     >
       <CardContent>

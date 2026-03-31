@@ -27,11 +27,14 @@ export default function StripeRefundButton({
   order: { paymentStatus, orderId, paymentMethod, grandTotal }
 }: StripeRefundButtonProps) {
   const { openAlert, closeAlert, dispatchAlert } = useAlertContext();
+  const [loading, setLoading] = React.useState(false);
   return (
     <RenderIfTrue
       condition={
         paymentMethod === 'stripe' &&
-        ['paid', 'partial_refunded'].includes(paymentStatus.code)
+        ['stripe_captured', 'stripe_partial_refunded'].includes(
+          paymentStatus.code
+        )
       }
     >
       <CardContent>
@@ -49,6 +52,7 @@ export default function StripeRefundButton({
                       action={refundAPI}
                       submitBtn={false}
                       onSuccess={(response) => {
+                        setLoading(false);
                         if (response.error) {
                           toast.error(response.error.message);
                           dispatchAlert({
@@ -61,6 +65,7 @@ export default function StripeRefundButton({
                         }
                       }}
                       onInvalid={() => {
+                        setLoading(false);
                         dispatchAlert({
                           type: 'update',
                           payload: { secondaryAction: { isLoading: false } }
@@ -93,7 +98,7 @@ export default function StripeRefundButton({
                       <InputField
                         type="hidden"
                         name="order_id"
-                        value={orderId}
+                        defaultValue={orderId}
                       />
                     </Form>
                   </div>
@@ -106,6 +111,7 @@ export default function StripeRefundButton({
                 secondaryAction: {
                   title: 'Refund',
                   onAction: () => {
+                    setLoading(true);
                     dispatchAlert({
                       type: 'update',
                       payload: { secondaryAction: { isLoading: true } }
@@ -117,7 +123,7 @@ export default function StripeRefundButton({
                     );
                   },
                   variant: 'secondary',
-                  isLoading: false
+                  isLoading: loading
                 }
               });
             }}

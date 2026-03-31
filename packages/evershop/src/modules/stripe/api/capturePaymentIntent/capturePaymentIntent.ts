@@ -1,5 +1,6 @@
 import { select } from '@evershop/postgres-query-builder';
-import stripePayment from 'stripe';
+import { NextFunction } from 'express';
+import Stripe from 'stripe';
 import { error } from '../../../../lib/log/logger.js';
 import { pool } from '../../../../lib/postgres/connection.js';
 import { getConfig } from '../../../../lib/util/getConfig.js';
@@ -8,10 +9,16 @@ import {
   INVALID_PAYLOAD,
   INTERNAL_SERVER_ERROR
 } from '../../../../lib/util/httpStatus.js';
+import { EvershopRequest } from '../../../../types/request.js';
+import { EvershopResponse } from '../../../../types/response.js';
 import { updatePaymentStatus } from '../../../oms/services/updatePaymentStatus.js';
 import { getSetting } from '../../../setting/services/setting.js';
 
-export default async (request, response, next) => {
+export default async (
+  request: EvershopRequest,
+  response: EvershopResponse,
+  next: NextFunction
+) => {
   try {
     const { order_id } = request.body;
     // Load the order
@@ -49,12 +56,12 @@ export default async (request, response, next) => {
     const stripeConfig = getConfig('system.stripe', {});
     let stripeSecretKey;
 
-    if (stripeConfig.secretKey) {
+    if (stripeConfig?.secretKey) {
       stripeSecretKey = stripeConfig.secretKey;
     } else {
       stripeSecretKey = await getSetting('stripeSecretKey', '');
     }
-    const stripe = stripePayment(stripeSecretKey);
+    const stripe = new Stripe(stripeSecretKey);
     // Retrieve the PaymentIntent
     const paymentIntent = await stripe.paymentIntents.retrieve(
       paymentTransaction.transaction_id
@@ -67,6 +74,7 @@ export default async (request, response, next) => {
           message: 'Invalid payment intent'
         }
       });
+      return;
     }
     if (paymentIntent.status !== 'requires_capture') {
       response.status(INVALID_PAYLOAD);
@@ -77,11 +85,12 @@ export default async (request, response, next) => {
             'Payment intent is not in the correct state (requires_capture)'
         }
       });
+      return;
     }
     // Capture the PaymentIntent
     await stripe.paymentIntents.capture(paymentTransaction.transaction_id);
     // Update the order status to paid
-    await updatePaymentStatus(order.order_id, 'paid');
+    await updatePaymentStatus(order.order_id, 'stripe_captured');
     response.status(OK);
     response.json({
       data: {

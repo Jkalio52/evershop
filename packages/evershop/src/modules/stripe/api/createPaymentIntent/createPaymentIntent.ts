@@ -1,12 +1,18 @@
 import { select } from '@evershop/postgres-query-builder';
-import stripePayment from 'stripe';
+import Stripe from 'stripe';
 import smallestUnit from 'zero-decimal-currencies';
 import { pool } from '../../../../lib/postgres/connection.js';
 import { getConfig } from '../../../../lib/util/getConfig.js';
 import { OK, INVALID_PAYLOAD } from '../../../../lib/util/httpStatus.js';
+import { EvershopRequest } from '../../../../types/request.js';
+import { EvershopResponse } from '../../../../types/response.js';
 import { getSetting } from '../../../setting/services/setting.js';
 
-export default async (request, response, next) => {
+export default async (
+  request: EvershopRequest,
+  response: EvershopResponse,
+  next
+) => {
   const { cart_id, order_id } = request.body;
   // Check the cart
   const cart = await select()
@@ -26,14 +32,14 @@ export default async (request, response, next) => {
     const stripeConfig = getConfig('system.stripe', {});
     let stripeSecretKey;
 
-    if (stripeConfig.secretKey) {
+    if (stripeConfig?.secretKey) {
       stripeSecretKey = stripeConfig.secretKey;
     } else {
       stripeSecretKey = await getSetting('stripeSecretKey', '');
     }
     const stripePaymentMode = await getSetting('stripePaymentMode', 'capture');
 
-    const stripe = stripePayment(stripeSecretKey);
+    const stripe = new Stripe(stripeSecretKey);
 
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
