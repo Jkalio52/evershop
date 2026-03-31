@@ -16,6 +16,7 @@ import { error } from '../../../lib/log/logger.js';
 import { pool } from '../../../lib/postgres/connection.js';
 import { getConfig } from '../../../lib/util/getConfig.js';
 import { hookable, hookAfter, hookBefore } from '../../../lib/util/hookable.js';
+import { getValueSync } from '../../../lib/util/registry.js';
 import { OrderRow } from '../../../types/db/index.js';
 import { PaymentStatus, ShipmentStatus } from '../../../types/order.js';
 
@@ -59,12 +60,13 @@ export function resolveOrderStatus(
       'Either shipment status or payment status is invalid. Can not update order status'
     );
   }
+  const finalPsoMapping = getValueSync('psoMapping', psoMapping, {});
   // Reverse the order status list to get the highest priority status first
   const nextStatus =
-    psoMapping[`${paymentStatus}:${shipmentStatus}`] ||
-    psoMapping[`*:${shipmentStatus}`] ||
-    psoMapping[`${paymentStatus}:*`] ||
-    psoMapping['*:*'];
+    finalPsoMapping[`${paymentStatus}:${shipmentStatus}`] ||
+    finalPsoMapping[`*:${shipmentStatus}`] ||
+    finalPsoMapping[`${paymentStatus}:*`] ||
+    finalPsoMapping['*:*'];
   if (!nextStatus || !orderStatusList[nextStatus]) {
     throw new Error(
       'Can not found a valid order status from the current shipment and payment status'

@@ -1,5 +1,6 @@
 import config from 'config';
 import { getConfig } from '../../../lib/util/getConfig.js';
+import { addProcessor } from '../../../lib/util/registry.js';
 import {
   OrderStatus,
   PaymentStatus,
@@ -131,11 +132,28 @@ function registerOrderStatus(id: string, detail: OrderStatus) {
   config.util.setModuleDefaults('oms', statusConfig);
 }
 
+/** Registers a mapping of payment status and shipment status to order status. This function must be called during the application initialization phase (e.g., in a module's `bootstrap` function).
+ * @param paymentStatus Payment status ID or "*" to match any payment status
+ * @param shipmentStatus Shipment status ID or "*" to match any shipment status
+ * @param orderStatus Order status ID to map to when the payment status and shipment status match the provided values
+ */
+function registerPSOStatusMapping(
+  paymentStatus: string | '*',
+  shipmentStatus: string | '*',
+  orderStatus: string
+) {
+  addProcessor('psoMapping', async (mapping: Record<string, string>) => {
+    mapping[`${paymentStatus}:${shipmentStatus}`] = orderStatus;
+    return mapping;
+  });
+}
+
 export {
   getOrderStatusList,
   getShipmentStatusList,
   getPaymentStatusList,
   registerPaymentStatus,
   registerShipmentStatus,
-  registerOrderStatus
+  registerOrderStatus,
+  registerPSOStatusMapping
 };

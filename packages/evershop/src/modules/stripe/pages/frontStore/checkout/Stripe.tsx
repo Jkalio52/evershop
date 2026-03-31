@@ -387,7 +387,8 @@ export default function StripeMethod({
           e.preventDefault();
           const validateStripe = (window as any)?.validateStripePayment;
           if (validateStripe) {
-            await validateStripe();
+            const isValid = await validateStripe();
+            if (!isValid) return;
           }
           // If validation passed, proceed with order placement
           await checkout();

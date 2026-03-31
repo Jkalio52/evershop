@@ -1,11 +1,11 @@
 import { select } from '@evershop/postgres-query-builder';
-import stripePayment from 'stripe';
+import Stripe from 'stripe';
 import { error } from '../../../lib/log/logger.js';
 import { pool } from '../../../lib/postgres/connection.js';
 import { getConfig } from '../../../lib/util/getConfig.js';
 import { getSetting } from '../../setting/services/setting.js';
 
-export async function cancelPaymentIntent(orderID) {
+export async function cancelPaymentIntent(orderID: number) {
   try {
     const transaction = await select()
       .from('payment_transaction')
@@ -17,12 +17,12 @@ export async function cancelPaymentIntent(orderID) {
     const stripeConfig = getConfig('system.stripe', {});
     let stripeSecretKey;
 
-    if (stripeConfig.secretKey) {
+    if (stripeConfig?.secretKey) {
       stripeSecretKey = stripeConfig.secretKey;
     } else {
       stripeSecretKey = await getSetting('stripeSecretKey', '');
     }
-    const stripe = stripePayment(stripeSecretKey);
+    const stripe = new Stripe(stripeSecretKey);
 
     // Get the payment intent
     const paymentIntent = await stripe.paymentIntents.retrieve(
