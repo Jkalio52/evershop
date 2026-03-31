@@ -123,6 +123,7 @@ export function CustomerAddressForm({
           component: {
             default: (
               <ProvinceAndPostcode
+                key={selectedCountry}
                 provinces={
                   allowCountries.find(
                     (country) => country.value === selectedCountry
