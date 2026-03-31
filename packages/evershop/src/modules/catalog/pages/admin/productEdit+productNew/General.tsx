@@ -23,7 +23,7 @@ import { _ } from '@evershop/evershop/lib/locale/translate/_';
 import React from 'react';
 import { useQuery } from 'urql';
 import './General.scss';
-import { set, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 const SKUAndPrice: React.FC<{
   sku: string;
@@ -161,7 +161,10 @@ const CategorySelect: React.FC<{
               onChange={() => {
                 setDialogOpen(true);
               }}
-              onUnassign={() => setCategory(null)}
+              onUnassign={() => {
+                setCategory(null);
+                setValue('category_id', '');
+              }}
             />
           </div>
         )}
